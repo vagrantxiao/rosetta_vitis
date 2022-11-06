@@ -1,29 +1,78 @@
-# Set kernel name
-KERNEL_NAME = optical_flow
+# Makefile for Digit_reg of Rosetta benchmarks
+#
+# Author: Yuanlong Xiao (ylxiao@seas.upenn.edu)
+#
+# Targets:
+#   all   - Builds hardware and software in SDSoC.
 
-# Set host source and headers
-HOST_SRC_CPP = ./src/host/optical_flow_host.cpp ./src/host/utils.cpp ./src/host/check_result.cpp ./imageLib/Convert.cpp \
-               ./imageLib/Convolve.cpp ./imageLib/flowIO.cpp ./imageLib/Image.cpp ./imageLib/ImageIO.cpp ./imageLib/RefCntMem.cpp
-HOST_SRC_H   = ./src/host/utils.h ./src/host/check_result.h ./src/host/typedefs.h ./imageLib/*.h
-DATA         = 
+ifndef XILINX_VIVADO
+  $(error Environment variable XILINX_VIVADO is required and should point to Vitis install area)
+endif
 
-# Set host code include paths
-HOST_INC = -I$(XILINX_VIVADO)/include -I./imageLib
-HOST_LIB =  -L$(XILINX_VIVADO)/lib
 
-# Set kernel file
-OCL_KERNEL_SRC = ./src/ocl/optical_flow.cpp
-OCL_KERNEL_H = ./src/host/typedefs.h
-SDSOC_KERNEL_SRC = ./src/sdsoc/optical_flow.cpp
-SDSOC_KERNEL_H = ./src/host/typedefs.h
-SW_KERNEL_SRC = ./src/sw/optical_flow_sw.cpp
-SW_KERNEL_H = ./src/host/typedefs.h ./src/sw/optical_flow_sw.h
 
-# Set opencl kernel arguments
-OCL_KERNEL_ARGS = --max_memory_ports all --report system -I$(shell pwd)/src/
+OPERATORS_OBJ=$(addsuffix .o, $(notdir $(basename $(wildcard operators/*.cpp))))
+# HOST_OBJ=$(addsuffix .o, $(notdir $(basename $(wildcard host/*.cpp))))
+HOST_OBJ=main.o top.o
 
-#-------------------------
-# Leave the rest to harness
-#-------------------------
-include ../harness/harness.mk
+
+
+INCLUDE=-I $(XILINX_VIVADO)/include 
+OPT_LEVEL=-O3
+CFLAGS=$(INCLUDE) $(OPT_LEVEL)
+CXX=g++
+VPATH=src
+
+
+all: main
+	./main
+
+main:$(OPERATORS_OBJ) $(HOST_OBJ)
+	$(CXX) $(CFLAGS) -o main $^ 
+
+$(HOST_OBJ):%.o:./host/%.cpp
+	$(CXX) $(CFLAGS) -o $@ -c $^
+
+
+$(OPERATORS_OBJ):%.o:./operators/%.cpp
+	$(CXX) $(CFLAGS) -o $@ -c $^
+
+run: main
+	./main
+
+install:
+	echo hello
+
+print: 
+	echo $(XILINX_VIVADO)
+	ls ./src
+
+tar:
+	tar -czvf ./src.tar.gz ./src/ 
+
+
+try:
+	echo $(notdir $(wildcard ./src)) 
+
+
+
+clean:
+	rm -rf ./*.o main
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

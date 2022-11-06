@@ -1,4 +1,131 @@
 # Rosetta: A Realistic High-level Synthesis Benchmark Suite for Software Programmable FPGAs
+## Modifications for Vitis 2020.2
+
+We modify the orignal benchmarks and compile them with Vitis 2020.2 instead of SDSoC(2017.1-2019.1)
+The target devide is [Alveo U50](https://www.xilinx.com/products/boards-and-kits/alveo/u50.html).
+
+The main modifications includes:
+1. Change the host.cpp for all the benchmarks. Use OpenCL interface as the DMA driver.
+2. As <hls_video.h> has been deprecated from Vitis 2020.1, we use <multimediaIps/xf_video_mem.hpp>
+as an alternative for **optical flow** benchmark.
+3. Change the Makefile for Vitis compilation.
+
+## Setup for Alveo U50
+
+The tools you need to install includes:
+1. [Vitis 2020.2](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vitis/2020-2.html)
+2. [xrt 2020.2](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/alveo/u50.html)
+3. [u50 deployment](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/alveo/u50.html)
+
+## Compile and Run Benchmarks with Alveo U50
+Set up the tools environments.
+
+```c
+source <Vitis installation dir>/Vitis/2020.2/settings64.sh
+source <opt/xilinx/xrt/setup.sh
+```
+
+1. rendering
+
+```c
+cd $(REPO_ROOT)/3d-rendering/hw
+make
+./host.exe
+```
+ 
+2. BNN
+
+```c
+cd $(REPO_ROOT)/BNN
+make
+source ./setup.sh
+cd ./accel
+./host.exe
+```
+
+3. digit-recognition
+
+```c
+cd $(REPO_ROOT)/digit-recognition/hw
+make
+./host.exe
+```
+
+4. face-detection
+
+```c
+cd $(REPO_ROOT)/face-detection/hw
+make
+./host.exe
+```
+
+5. optical-flow
+
+```c
+cd $(REPO_ROOT)/optical-flow/hw
+make
+./host.exe
+```
+
+6. spam-filter
+
+```c
+cd $(REPO_ROOT)/spam-filter/hw
+make
+./host.exe
+```
+
+## Compile Time and Performance for Alveo U50
+The compile time comes from quark with 4 jobs.
+
+| Benchmark  | HLS   |Verilog2Bit|Kernel Frequency|Runtime (ms) |
+|:----------:|:-----:|:---------:|:--------------:|:-----------:|
+|3D Rendering|0h7m30s|1h21m3s|300MHz|1.6ms|
+|Digit Recognition<sup>1</sup>|0h2m47s|1h48m11s|300MHz|10.5ms|
+|Spam Filtering<sup>2</sup>|0h1m16s|1h27m47s|300MHz|3.5ms|
+|Optical Flow|0h6m42s|1h52m59s|200MHz|13.6ms|
+|BNN<sup>3</sup>|0h7m50s|1h42m20s|300MHz|5250ms|
+|Face Detection|0h24m47s|1h54m6s|150MHz|24.1ms|
+
+1: K=3, `PAR_FACTOR`=40.
+
+2: Five epochs, `PAR_FACTOR`=32, `VDWIDTH`=512.
+
+3: 1000 test images.
+
+
+## Compile and Run Benchmarks with ZCU102
+
+1. 3d-rendering
+
+```c
+cd root_dir
+./setup
+cd 3d-rendering/zcu102
+open ./build.sh
+change source /opt/Xilinx/Vitis/2020.2/settings64.sh to the right path
+./build
+```
+
+## Compile Time and Performance for ZCU102
+The compile time comes from quark with 4 jobs.
+
+| Benchmark  | HLS   |Verilog2Bit|Kernel Frequency|Runtime (ms) |
+|:----------:|:-----:|:---------:|:--------------:|:-----------:|
+|3D Rendering|0h4m5s|0h15m37s|200MHz|2.3ms|
+|Digit Recognition<sup>1</sup>|0h2m2s|0h28m32s|200MHz|15.8ms|
+|Spam Filtering<sup>2</sup>|0h0m59s|0h27m39s|200MHz|6.9ms|
+|Optical Flow|0h2m23s|0h22m15s|200MHz|13.5ms|
+|BNN<sup>3</sup>|NA|NA|NA|NA|
+|Face Detection|0h25m33s|0h37m33s|200MHz|20.99ms|
+
+1: K=3, `PAR_FACTOR`=40.
+
+2: Five epochs, `PAR_FACTOR`=32, `VDWIDTH`=512.
+
+3: 1000 test images. SDSoC zlib and minizip lib are not compatible with Vitis flow.
+
+
 
 ## Publication
 -------------------------------------------------------------------------------------------
